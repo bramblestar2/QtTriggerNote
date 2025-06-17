@@ -1,0 +1,4 @@
+[submodule "external/MidiAppBackend"]
+	path = external/MidiAppBackend
+	url = ssh://pidevice-1@192.168.86.47:2222/jay/MidiAppTest.git
+	branch = audio-revamp
