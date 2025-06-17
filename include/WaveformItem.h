@@ -5,10 +5,14 @@
 
 class WaveformItem : public QGraphicsItem {
 public:
-    QVector<float> levels;
-    QRectF boundingRect() const override { return rect; }
+    WaveformItem(const QRectF &r = QRectF(0,0,800,200), QGraphicsItem* parent = nullptr);
 
+    QRectF boundingRect() const override;
     void paint(QPainter *p, const QStyleOptionGraphicsItem*, QWidget*) override;
 
-    QRectF rect;
+    void setLevels(const QVector<float> &newLevels);
+
+private:
+    QRectF m_rect;
+    QVector<float> m_levels;
 };
