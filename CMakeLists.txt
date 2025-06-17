@@ -10,12 +10,15 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(external/MidiAppBackend)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
 
 qt_standard_project_setup()
 
 qt_add_executable(QtTriggerNote
     src/main.cpp
+
+    include/MainWindow.h src/MainWindow.cpp
+    include/WaveformItem.h src/WaveformItem.cpp
 )
 
 add_dependencies(QtTriggerNote MidiAppCore)
@@ -24,5 +27,12 @@ target_link_libraries(QtTriggerNote
     PRIVATE
         Qt6::Core
         Qt6::Widgets
+        Qt6::Multimedia
         MidiAppCore
+)
+
+target_include_directories(QtTriggerNote
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
