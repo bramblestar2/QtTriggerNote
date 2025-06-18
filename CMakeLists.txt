@@ -45,3 +45,15 @@ target_include_directories(QtTriggerNote
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+include(GNUInstallDirs)
+
+install(TARGETS QtTriggerNote
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+if (KDDW_DLL_PATH)
+    install(FILES ${KDDW_DLL_PATH} DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()

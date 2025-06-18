@@ -3,7 +3,7 @@
 #include <QPushButton>
 
 MainWindow::MainWindow(QWidget *parent)
-    : KDDockWidgets::QtWidgets::MainWindow("QtTriggerNoteWindow", KDDockWidgets::MainWindowOption_None, parent)
+    : QMainWindow(parent)
     , m_centralWidget(new QWidget(this))
 {
     connect(&app, &QtApp::audioListChanged, this, &MainWindow::audioListChanged);

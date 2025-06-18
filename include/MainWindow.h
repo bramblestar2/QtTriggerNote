@@ -6,7 +6,7 @@
 
 #include "core/QtApp.h"
 
-class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
+class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
     MainWindow(QWidget *parent = nullptr);
