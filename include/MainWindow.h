@@ -1,14 +1,14 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QGraphicsView>
+#include <QWidget>
+#include <kddockwidgets/MainWindow.h>
 
-class MainWindow : public QMainWindow {
+class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
 public:
     MainWindow(QWidget *parent = nullptr);
 
 private:
-
-    QGraphicsView *view = nullptr;
+    QWidget *m_centralWidget;
 };

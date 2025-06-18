@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(external/MidiAppBackend)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
+find_package(KDDockWidgets-qt6 CONFIG REQUIRED)
 
 qt_standard_project_setup()
 
@@ -19,6 +20,7 @@ qt_add_executable(QtTriggerNote
 
     include/MainWindow.h src/MainWindow.cpp
     include/WaveformItem.h src/WaveformItem.cpp
+    include/core/QtApp.h src/core/QtApp.cpp
 )
 
 add_dependencies(QtTriggerNote MidiAppCore)
@@ -28,6 +30,9 @@ target_link_libraries(QtTriggerNote
         Qt6::Core
         Qt6::Widgets
         Qt6::Multimedia
+
+        KDAB::kddockwidgets
+
         MidiAppCore
 )
 
