@@ -10,7 +10,7 @@ public:
     QtApp();
 
 signals:
-    void midiBindingsChanged();
+    void midiBindingsChanged(const std::map<int, std::vector<MidiBinding>>& bindings);
     void audioListChanged();
     void pageChanged(int page);
     void midiMessage(MidiDevice* device, MidiMessage msg);

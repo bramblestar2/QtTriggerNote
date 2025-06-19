@@ -5,6 +5,7 @@
 #include <kddockwidgets/MainWindow.h>
 
 #include "core/QtApp.h"
+#include "core/components/BindingListWidget.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -19,6 +20,8 @@ private slots:
 
 private:
     QWidget *m_centralWidget;
+
+    BindingListWidget *m_bindingListWidget;
 
     QtApp app;
 };
