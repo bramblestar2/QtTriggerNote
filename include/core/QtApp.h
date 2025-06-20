@@ -14,4 +14,5 @@ signals:
     void audioListChanged();
     void pageChanged(int page);
     void midiMessage(MidiDevice* device, MidiMessage msg);
+    void deviceRefresh(std::vector<MidiDevice*> devices);
 };

@@ -4,7 +4,7 @@
 
 struct MidiBinding;
 
-class BindingListWidget : public QWidget {
+class BindingListWidget : public QListWidget {
 public:
     BindingListWidget(QWidget* parent = nullptr);
 
@@ -14,5 +14,4 @@ public slots:
     void update(const std::map<int, std::vector<MidiBinding>>& bindings);
 
 private:
-    QListWidget* m_list;
 };

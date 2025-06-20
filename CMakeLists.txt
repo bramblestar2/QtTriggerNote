@@ -26,6 +26,7 @@ qt_add_executable(QtTriggerNote
     include/WaveformItem.h src/WaveformItem.cpp
     include/core/QtApp.h src/core/QtApp.cpp
     include/core/components/BindingListWidget.h src/core/components/BindingListWidget.cpp
+    include/core/components/DevicesListWidget.h src/core/components/DevicesListWidget.cpp
 )
 
 add_dependencies(QtTriggerNote MidiAppCore)

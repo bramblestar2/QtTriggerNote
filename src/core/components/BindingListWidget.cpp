@@ -1,17 +1,22 @@
 #include "core/components/BindingListWidget.h"
 #include <App/types.h>
 #include <map>
+#include <QListWidgetItem>
+#include <QVBoxLayout>
 
 BindingListWidget::BindingListWidget(QWidget *parent)
-    : QWidget(parent)
+    : QListWidget(parent)
 {
 }
 
 void BindingListWidget::setBindingsList(const std::map<int, std::vector<MidiBinding>> &bindings)
 {
+    this->clear();
     for (auto& [page, bindings] : bindings) {
         for (auto& binding : bindings) {
-            qDebug() << "Binding: " << binding.id << " " << binding.deviceName << " " << binding.eventType << " " << binding.key;
+            auto item = new QListWidgetItem(this);
+            item->setText(QString::number(binding.id) + " " + QString::fromStdString(binding.deviceName) + " " + QString::number(binding.eventType) + " " + QString::number(binding.key));
+            this->addItem(item);
         }
     }
 }
