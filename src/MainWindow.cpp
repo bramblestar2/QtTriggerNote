@@ -4,7 +4,7 @@
 #include <QSplitter>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : KDDockWidgets::QtWidgets::MainWindow("MainWindow", KDDockWidgets::MainWindowOption_None, parent)
     , m_centralWidget(new QWidget(this))
 {
     connect(&app, &QtApp::audioListChanged, this, &MainWindow::audioListChanged);
@@ -15,12 +15,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    setCentralWidget(m_centralWidget);
-    auto centralLayout = new QVBoxLayout(m_centralWidget);
-    m_centralWidget->setLayout(centralLayout);
+    m_listsDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Lists");
+    m_bindingDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Bindings");
 
     QSplitter *splitter = new QSplitter(Qt::Vertical);
-    centralLayout->addWidget(splitter);
+    // centralLayout->addWidget(splitter);
 
     m_bindingListWidget = new BindingListWidget();
     splitter->addWidget(m_bindingListWidget);
