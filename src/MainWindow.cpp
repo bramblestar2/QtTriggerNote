@@ -18,7 +18,12 @@ MainWindow::MainWindow(QWidget *parent)
     m_listsDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Lists");
     m_bindingDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Bindings");
 
+    this->addDockWidget(m_listsDockWidget, KDDockWidgets::Location_OnLeft);
+    this->addDockWidget(m_bindingDockWidget, KDDockWidgets::Location_OnRight);
+
     QSplitter *splitter = new QSplitter(Qt::Vertical);
+
+    m_listsDockWidget->setWidget(splitter);
     // centralLayout->addWidget(splitter);
 
     m_bindingListWidget = new BindingListWidget();
