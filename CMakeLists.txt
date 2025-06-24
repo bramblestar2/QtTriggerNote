@@ -27,6 +27,7 @@ qt_add_executable(QtTriggerNote
     include/core/QtApp.h src/core/QtApp.cpp
     include/core/components/BindingListWidget.h src/core/components/BindingListWidget.cpp
     include/core/components/DevicesListWidget.h src/core/components/DevicesListWidget.cpp
+    include/core/components/BindingSetupWidget.h src/core/components/BindingSetupWidget.cpp
 )
 
 add_dependencies(QtTriggerNote MidiAppCore)

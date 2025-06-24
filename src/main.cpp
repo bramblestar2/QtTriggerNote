@@ -12,6 +12,7 @@ int main(int argc, char* argv[]) {
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
 
     MainWindow window;
+    window.resize(800, 600);
     window.show();
 
     return app.exec();
