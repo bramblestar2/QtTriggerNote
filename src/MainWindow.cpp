@@ -2,24 +2,23 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QSplitter>
+#include <QMenuBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow("MainWindow", KDDockWidgets::MainWindowOption_None, parent)
     , m_centralWidget(new QWidget(this))
 {
-    connect(&app, &QtApp::audioListChanged, this, &MainWindow::audioListChanged);
-    connect(&app, &QtApp::midiBindingsChanged, this, &MainWindow::midiBindingsChanged);
-    connect(&app, &QtApp::pageChanged, this, &MainWindow::pageChanged);
-    connect(&app, &QtApp::midiMessage, this, &MainWindow::midiMessage);
-    connect(&app, &QtApp::deviceRefresh, this, &MainWindow::deviceRefresh);
-
-
-
     m_listsDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Lists");
     m_bindingDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Bindings");
 
     this->addDockWidget(m_listsDockWidget, KDDockWidgets::Location_OnLeft);
     this->addDockWidget(m_bindingDockWidget, KDDockWidgets::Location_OnRight);
+
+    QMenuBar *menuBar = new QMenuBar(this);
+    this->setMenuBar(menuBar);
+    QMenu* viewMenu = menuBar->addMenu("View");
+    viewMenu->addAction(m_listsDockWidget->toggleAction());
+    viewMenu->addAction(m_bindingDockWidget->toggleAction());
 
     QSplitter *splitter = new QSplitter(Qt::Vertical);
 
@@ -34,27 +33,10 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->addWidget(m_devicesListWidget);
     connect(&app, &QtApp::deviceRefresh, m_devicesListWidget, &DevicesListWidget::update);
 
+    m_bindingSetupWidget = new BindingSetupWidget();
+    m_bindingDockWidget->setWidget(m_bindingSetupWidget);
+
     auto bind = app.midiBind("Novation Launchpad Pro").change_page_to(1).key(0x5F).type(MidiMessage::NoteOn).on_page(0);
     app.addMidiBinding(bind.build());
     app.midiManager().refresh();
-}
-
-void MainWindow::audioListChanged() {
-    qDebug() << "Audio list changed";
-}
-
-void MainWindow::midiBindingsChanged() {
-    qDebug() << "Midi bindings changed";
-}
-
-void MainWindow::pageChanged(int page) {
-    qDebug() << "Page changed to " << page;
-}
-
-void MainWindow::midiMessage(MidiDevice* device, MidiMessage msg) {
-    qDebug() << "Midi message: " << device->name() << " " << msg.status << " " << msg.key << " " << msg.velocity << " " << msg.timestamp << " " << msg.type();
-}
-
-void MainWindow::deviceRefresh(std::vector<MidiDevice*> devices) {
-    qDebug() << "Device refresh";
 }

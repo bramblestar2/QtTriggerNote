@@ -3,25 +3,124 @@
 #include <QSpinBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QTextLine>
+#include <QLineEdit>
 #include <QToolButton>
+#include <QSpacerItem>
+#include <QFileDialog>
 
+#include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QFormLayout>
+
+/*
+
+To create a binding, I would need to provide the following: 
+
+Required:
+    - Device Name (String)
+
+Optional:
+    - Event Type (int)
+    - Key (int)
+    - On Page (int)
+    - To Page (int)
+    - Audio ID (int)
+
+*/
 
 BindingSetupWidget::BindingSetupWidget(QWidget *parent) 
     : QWidget(parent) 
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setObjectName("bindingSetupLayout");
+    QFormLayout *formLayout = new QFormLayout(this);
+    formLayout->setObjectName("formLayout");
+    
+    QWidget *fileEditWidget = new QWidget(this);
+    QHBoxLayout *fileEditLayout = new QHBoxLayout(fileEditWidget);
+    fileEditWidget->setObjectName("fileWidget");
+    fileEditWidget->setLayout(fileEditLayout);
 
-    QLabel *deviceLabel = new QLabel("Device", this);
-    deviceLabel->setObjectName("deviceLabel");
+    QLineEdit *fileLine = new QLineEdit(this);
+    fileLine->setObjectName("fileLine");
+    fileLine->setPlaceholderText("Audio File");
+
+    QToolButton *openFileBtn = new QToolButton(this);
+    openFileBtn->setObjectName("openFileBtn");
+    openFileBtn->setIcon(QIcon::fromTheme("folder-open"));
+    openFileBtn->setToolTip("Open File");
+    openFileBtn->connect(openFileBtn, &QToolButton::clicked, this, &BindingSetupWidget::openFile);
+
+    QLineEdit *eventType = new QLineEdit(this);
+    eventType->setObjectName("eventType");
+    eventType->setPlaceholderText("Event Type");
+    eventType->setValidator(new QIntValidator(0, 0x7F, this));
+    eventType->setText("0");
+
+    QLineEdit *key = new QLineEdit(this);
+    key->setObjectName("key");
+    key->setPlaceholderText("Key");
+    key->setValidator(new QIntValidator(0, 0x7f, this));
+    key->setText("0");
+
+    QLineEdit *onPage = new QLineEdit(this);
+    onPage->setObjectName("onPage");
+    onPage->setPlaceholderText("On Page");
+    onPage->setValidator(new QIntValidator(0, 0x7f, this));
+    onPage->setText("0");
+
+    QLineEdit *toPage = new QLineEdit(this);
+    toPage->setObjectName("toPage");
+    toPage->setPlaceholderText("To Page");
+    toPage->setValidator(new QIntValidator(0, 0x7f, this));
+    toPage->setText("0");
+
+    QLineEdit *audioId = new QLineEdit(this);
+    audioId->setObjectName("audioId");
+    audioId->setPlaceholderText("Audio ID");
+    audioId->setValidator(new QIntValidator(this));
+    audioId->setText("-1");
 
     QPushButton *createBindingBtn = new QPushButton("Create Binding", this);
     createBindingBtn->setObjectName("createBindingBtn");
 
-    layout->addWidget(deviceLabel);
-    layout->addWidget(createBindingBtn);
+    fileEditLayout->addWidget(fileLine);
+    fileEditLayout->addWidget(openFileBtn);
 
-    this->setLayout(layout);
+    this->setLayout(formLayout);
+    formLayout->addRow("File", fileEditWidget);
+    formLayout->addRow("Event Type", eventType);
+    formLayout->addRow("Key", key);
+    formLayout->addRow("On Page", onPage);
+    formLayout->addRow("To Page", toPage);
+    formLayout->addRow("Audio ID", audioId);
+    formLayout->addWidget(createBindingBtn);
+
+
+
+
+    // QVBoxLayout *layout = new QVBoxLayout(this);
+    // layout->setObjectName("bindingSetupLayout");
+
+    // QLabel *deviceLabel = new QLabel("Device", this);
+    // deviceLabel->setObjectName("deviceLabel");
+
+    
+
+    // fileEditLayout->addWidget(fileLine);
+    // fileEditLayout->addWidget(openFileBtn);
+
+    // layout->addStretch();
+    // layout->addWidget(deviceLabel);
+    // layout->addWidget(fileEditWidget);
+    // layout->addWidget(createBindingBtn);
+    // layout->addStretch();
+
+    // this->setLayout(layout);
+}
+
+void BindingSetupWidget::openFile() {
+    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav) ;; All Files (*)");
+    if (filename != "") {
+        QLineEdit *fileLine = this->findChild<QLineEdit*>("fileLine");
+        fileLine->setText(filename);
+    }
 }
