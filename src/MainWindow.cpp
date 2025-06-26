@@ -10,9 +10,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_listsDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Lists");
     m_bindingDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Bindings");
+    m_audioDockWidget = new KDDockWidgets::QtWidgets::DockWidget("Audio");
 
     this->addDockWidget(m_listsDockWidget, KDDockWidgets::Location_OnLeft);
     this->addDockWidget(m_bindingDockWidget, KDDockWidgets::Location_OnRight);
+    // Dock inside of bindings
+    m_bindingDockWidget->addDockWidgetAsTab(m_audioDockWidget);
 
     QMenuBar *menuBar = new QMenuBar(this);
     this->setMenuBar(menuBar);
@@ -35,6 +38,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_bindingSetupWidget = new BindingSetupWidget();
     m_bindingDockWidget->setWidget(m_bindingSetupWidget);
+
+    m_audioSetupWidget = new AudioSetupWidget();
+    m_audioDockWidget->setWidget(m_audioSetupWidget);
 
     auto bind = app.midiBind("Novation Launchpad Pro").change_page_to(1).key(0x5F).type(MidiMessage::NoteOn).on_page(0);
     app.addMidiBinding(bind.build());

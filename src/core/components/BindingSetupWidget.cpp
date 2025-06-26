@@ -2,12 +2,9 @@
 
 #include <QSpinBox>
 #include <QLabel>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QToolButton>
+
 #include <QSpacerItem>
 #include <QFileDialog>
-
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QFormLayout>
@@ -39,54 +36,48 @@ BindingSetupWidget::BindingSetupWidget(QWidget *parent)
     fileEditWidget->setObjectName("fileWidget");
     fileEditWidget->setLayout(fileEditLayout);
 
-    QLineEdit *fileLine = new QLineEdit(this);
-    fileLine->setObjectName("fileLine");
-    fileLine->setPlaceholderText("Audio File");
+    deviceList = new QComboBox(this);
+    deviceList->setObjectName("fileLine");
 
-    QToolButton *openFileBtn = new QToolButton(this);
-    openFileBtn->setObjectName("openFileBtn");
-    openFileBtn->setIcon(QIcon::fromTheme("folder-open"));
-    openFileBtn->setToolTip("Open File");
-    openFileBtn->connect(openFileBtn, &QToolButton::clicked, this, &BindingSetupWidget::openFile);
-
-    QLineEdit *eventType = new QLineEdit(this);
+    eventType = new QLineEdit(this);
     eventType->setObjectName("eventType");
     eventType->setPlaceholderText("Event Type");
     eventType->setValidator(new QIntValidator(0, 0x7F, this));
     eventType->setText("0");
 
-    QLineEdit *key = new QLineEdit(this);
+    key = new QLineEdit(this);
     key->setObjectName("key");
     key->setPlaceholderText("Key");
     key->setValidator(new QIntValidator(0, 0x7f, this));
     key->setText("0");
 
-    QLineEdit *onPage = new QLineEdit(this);
+    onPage = new QLineEdit(this);
     onPage->setObjectName("onPage");
     onPage->setPlaceholderText("On Page");
     onPage->setValidator(new QIntValidator(0, 0x7f, this));
     onPage->setText("0");
 
-    QLineEdit *toPage = new QLineEdit(this);
+    toPage = new QLineEdit(this);
     toPage->setObjectName("toPage");
     toPage->setPlaceholderText("To Page");
     toPage->setValidator(new QIntValidator(0, 0x7f, this));
     toPage->setText("0");
 
-    QLineEdit *audioId = new QLineEdit(this);
+    audioId = new QLineEdit(this);
     audioId->setObjectName("audioId");
     audioId->setPlaceholderText("Audio ID");
     audioId->setValidator(new QIntValidator(this));
     audioId->setText("-1");
 
-    QPushButton *createBindingBtn = new QPushButton("Create Binding", this);
+    createBindingBtn = new QPushButton("Create Binding", this);
     createBindingBtn->setObjectName("createBindingBtn");
 
-    fileEditLayout->addWidget(fileLine);
-    fileEditLayout->addWidget(openFileBtn);
+    connect(createBindingBtn, &QPushButton::pressed, this, &BindingSetupWidget::createBinding);
+
+    fileEditLayout->addWidget(deviceList);
 
     this->setLayout(formLayout);
-    formLayout->addRow("File", fileEditWidget);
+    formLayout->addRow("Device", fileEditWidget);
     formLayout->addRow("Event Type", eventType);
     formLayout->addRow("Key", key);
     formLayout->addRow("On Page", onPage);
@@ -117,10 +108,19 @@ BindingSetupWidget::BindingSetupWidget(QWidget *parent)
     // this->setLayout(layout);
 }
 
-void BindingSetupWidget::openFile() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav) ;; All Files (*)");
-    if (filename != "") {
-        QLineEdit *fileLine = this->findChild<QLineEdit*>("fileLine");
-        fileLine->setText(filename);
-    }
+void BindingSetupWidget::createBinding() {
+    emit bindingCreated(deviceList->currentText(), 
+                       eventType->text().toInt(), 
+                       key->text().toInt(), 
+                       onPage->text().toInt(), 
+                       toPage->text().toInt(), 
+                       audioId->text().toInt()
+                    );
+
+    qDebug() << "Creating Binding with Device: " << deviceList->currentText();
+    qDebug() << "Creating Binding with Event Type: " << eventType->text().toInt();
+    qDebug() << "Creating Binding with Key: " << key->text().toInt();
+    qDebug() << "Creating Binding with On Page: " << onPage->text().toInt();
+    qDebug() << "Creating Binding with To Page: " << toPage->text().toInt();
+    qDebug() << "Creating Binding with Audio ID: " << audioId->text().toInt();
 }

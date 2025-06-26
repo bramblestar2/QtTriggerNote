@@ -16,6 +16,7 @@ add_subdirectory(external/MidiAppBackend)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
 find_package(KDDockWidgets-qt6 CONFIG REQUIRED)
+find_package(SndFile CONFIG REQUIRED)
 
 qt_standard_project_setup()
 
@@ -28,6 +29,7 @@ qt_add_executable(QtTriggerNote
     include/core/components/BindingListWidget.h src/core/components/BindingListWidget.cpp
     include/core/components/DevicesListWidget.h src/core/components/DevicesListWidget.cpp
     include/core/components/BindingSetupWidget.h src/core/components/BindingSetupWidget.cpp
+    include/core/components/AudioSetupWidget.h src/core/components/AudioSetupWidget.cpp
 )
 
 add_dependencies(QtTriggerNote MidiAppCore)
@@ -39,6 +41,7 @@ target_link_libraries(QtTriggerNote
         Qt6::Multimedia
 
         KDAB::kddockwidgets
+        SndFile::sndfile
 
         MidiAppCore
 )
