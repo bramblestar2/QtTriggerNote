@@ -10,11 +10,15 @@
 #include "core/components/DevicesListWidget.h"
 #include "core/components/BindingSetupWidget.h"
 #include "core/components/AudioSetupWidget.h"
+#include "core/components/AudioListWidget.h"
 
 class MainWindow : public KDDockWidgets::QtWidgets::MainWindow {
     Q_OBJECT
 public:
     MainWindow(QWidget *parent = nullptr);
+
+private slots:
+    void createAudio(PlayerInfo info);
 
 private:
     QWidget *m_centralWidget;
@@ -23,6 +27,7 @@ private:
     DevicesListWidget *m_devicesListWidget = nullptr;
     BindingSetupWidget *m_bindingSetupWidget = nullptr;
     AudioSetupWidget *m_audioSetupWidget = nullptr;
+    AudioListWidget *m_audioListWidget = nullptr;
 
     KDDockWidgets::QtWidgets::DockWidget *m_listsDockWidget = nullptr;
     KDDockWidgets::QtWidgets::DockWidget *m_bindingDockWidget = nullptr;

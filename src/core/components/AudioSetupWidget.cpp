@@ -9,6 +9,7 @@
 
 #include <filesystem>
 
+
 AudioSetupWidget::AudioSetupWidget(QWidget *parent)
 {
     QWidget *fileWidget = new QWidget(this);
@@ -84,6 +85,7 @@ void AudioSetupWidget::openFile()
         QString{},
         "Audio Files (*.wav *.flac *.mp3)"
     );
+    
     if (path.isEmpty())
         return;
 
@@ -111,5 +113,18 @@ void AudioSetupWidget::openFile()
 
 void AudioSetupWidget::createPressed()
 {
-    emit audioCreated(filename->text());
+    if (filename->text().isEmpty())
+        return;
+
+    PlayerInfo info;
+    info.file = filename->text().toStdString();
+    info.settings.volume = volume->text().toDouble();
+    info.settings.start_time = startTime->text().toDouble();
+    info.settings.end_time = endTime->text().toDouble();
+    info.settings.fade_in = fadeIn->text().toDouble();
+    info.settings.fade_out = fadeOut->text().toDouble();
+    info.settings.speed = speed->text().toDouble();
+    info.settings.looped = looped->isChecked();
+    
+    emit audioCreated(info);
 }

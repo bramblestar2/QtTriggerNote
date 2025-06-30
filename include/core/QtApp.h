@@ -20,14 +20,14 @@ signals:
     void pageChanged(int page);
     void midiMessage(MidiDevice* device, MidiMessage msg);
     void deviceRefresh(std::vector<MidiDevice*> devices);
-
-private slots:
+    
+private:
     void on_midiBindingsChanged(std::map<int, std::vector<MidiBinding>> bindings);
     void on_audioListChanged(std::vector<PlayerEntry> audioList);
     void on_pageChanged(int page);
+    void on_midiMessage(MidiDevice* device, MidiMessage msg);
     void on_deviceRefresh(std::vector<MidiDevice*> devices);
 
-private:
     QStringList m_audioList;
     QStringList m_bindingList;
     QStringList m_deviceList;

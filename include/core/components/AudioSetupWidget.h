@@ -6,6 +6,8 @@
 #include <QToolButton>
 #include <QCheckBox>
 
+#include <Audio/types.h>
+
 class AudioSetupWidget : public QWidget
 {
     Q_OBJECT
@@ -14,7 +16,7 @@ public:
 
 
 signals:
-    void audioCreated(QString filename);
+    void audioCreated(PlayerInfo info);
 
 private slots:
     void openFile();
