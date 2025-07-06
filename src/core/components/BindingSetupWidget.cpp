@@ -42,6 +42,8 @@ BindingSetupWidget::BindingSetupWidget(QWidget *parent)
 
     deviceList = new QComboBox(this);
     deviceList->setObjectName("fileLine");
+    // Stretch Combobox
+    deviceList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     eventType = new QLineEdit(this);
     eventType->setObjectName("eventType");

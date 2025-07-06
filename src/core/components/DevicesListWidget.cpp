@@ -10,8 +10,11 @@ DevicesListWidget::DevicesListWidget(QWidget *parent)
 void DevicesListWidget::update(std::vector<MidiDevice*> devices) {
     this->clear();
     for (MidiDevice* device : devices) {
+        if (device->status() != Availability::Available) {
+            continue;
+        }
         auto item = new QListWidgetItem(this);
-        item->setText(QString::fromStdString(device->displayName()));
+        item->setText(QString::fromStdString(device->name()));
         this->addItem(item);
     }
 }
