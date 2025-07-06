@@ -3,6 +3,7 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QMenuBar>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow("MainWindow", KDDockWidgets::MainWindowOption_None, parent)
@@ -16,12 +17,18 @@ MainWindow::MainWindow(QWidget *parent)
     this->addDockWidget(m_bindingDockWidget, KDDockWidgets::Location_OnRight);
     this->addDockWidget(m_audioDockWidget, KDDockWidgets::Location_OnBottom);
 
-    QMenuBar *menuBar = new QMenuBar(this);
-    this->setMenuBar(menuBar);
-    QMenu* viewMenu = menuBar->addMenu("View");
+    m_menuBar = new QMenuBar(this);
+    this->setMenuBar(m_menuBar);
+    QMenu* viewMenu = m_menuBar->addMenu("View");
     viewMenu->addAction(m_listsDockWidget->toggleAction());
     viewMenu->addAction(m_bindingDockWidget->toggleAction());
     viewMenu->addAction(m_audioDockWidget->toggleAction());
+
+    QMenu *fileMenu = m_menuBar->addMenu("File");
+    m_saveAction = fileMenu->addAction("Save");
+    m_openAction = fileMenu->addAction("Open");
+
+    connect(m_menuBar, &QMenuBar::triggered, this, &MainWindow::menuActionTriggered);
 
     QSplitter *splitter = new QSplitter(Qt::Vertical);
 
@@ -30,30 +37,30 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_bindingListWidget = new BindingListWidget();
     splitter->addWidget(m_bindingListWidget);
-    connect(&app, &QtApp::midiBindingsChanged, m_bindingListWidget, &BindingListWidget::update);
+    connect(&m_app, &QtApp::midiBindingsChanged, m_bindingListWidget, &BindingListWidget::update);
 
     m_devicesListWidget = new DevicesListWidget();
     splitter->addWidget(m_devicesListWidget);
-    connect(&app, &QtApp::deviceRefresh, m_devicesListWidget, &DevicesListWidget::update);
+    connect(&m_app, &QtApp::deviceRefresh, m_devicesListWidget, &DevicesListWidget::update);
 
     m_audioListWidget = new AudioListWidget();
     splitter->addWidget(m_audioListWidget);
-    connect(&app, &QtApp::audioListChanged, m_audioListWidget, &AudioListWidget::update);
+    connect(&m_app, &QtApp::audioListChanged, m_audioListWidget, &AudioListWidget::update);
 
     m_bindingSetupWidget = new BindingSetupWidget();
     m_bindingDockWidget->setWidget(m_bindingSetupWidget);
-    connect(&app, &QtApp::deviceRefresh, m_bindingSetupWidget, &BindingSetupWidget::update);
+    connect(&m_app, &QtApp::deviceRefresh, m_bindingSetupWidget, &BindingSetupWidget::update);
     connect(m_bindingSetupWidget, &BindingSetupWidget::bindingCreated, this, &MainWindow::createBinding);
 
     m_audioSetupWidget = new AudioSetupWidget();
     m_audioDockWidget->setWidget(m_audioSetupWidget);
     connect(m_audioSetupWidget, &AudioSetupWidget::audioCreated, this, &MainWindow::createAudio);
 
-    auto bind = app.midiBind("Novation Launchpad Pro").change_page_to(1).key(0x5F).type(libremidi::message_type::NOTE_ON).on_page(0).audio(1);
-    app.addMidiBinding(bind.build());
+    // auto bind = app.midiBind("Novation Launchpad Pro").change_page_to(1).key(0x5F).type(libremidi::message_type::NOTE_ON).on_page(0).audio(1);
+    // app.addMidiBinding(bind.build());
 
-    connect(&app, &QtApp::midiMessage, this, [this](MidiDevice* device, MidiMessage msg) {
-        qDebug() << "Midi Message: " << (int)msg[1];
+    connect(&m_app, &QtApp::midiMessage, this, [this](MidiDevice* device, MidiMessage msg) {
+        qDebug() << "Midi Message: " << device->name() << " " << (int)msg[0] << " " << (int)msg[1] << " " << (int)msg[2];
     });
 }
 
@@ -71,10 +78,40 @@ void MainWindow::createAudio(PlayerInfo info) {
     builder.set_start(info.settings.start_time);
     builder.set_end(info.settings.end_time);
 
-    app.createAudio(std::move(builder));
+    m_app.createAudio(std::move(builder));
 }
 
 
 void MainWindow::createBinding(MidiBinding binding) {
-    app.addMidiBinding(binding);
+    m_app.addMidiBinding(binding);
+}
+
+void MainWindow::menuActionTriggered(QAction *action) {
+    if (action == m_saveAction) {
+        qDebug() << "Save";
+
+        QString dir = QFileDialog::getExistingDirectory(
+            this,
+            "Select Directory",
+            QString{}
+        );
+
+        if (dir.isEmpty())
+            return;
+
+        m_app.save(dir.toStdString());
+    } else if (action == m_openAction) {
+        qDebug() << "Open";
+
+        QString dir = QFileDialog::getExistingDirectory(
+            this,
+            "Select Directory",
+            QString{}
+        );
+
+        if (dir.isEmpty())
+            return;
+
+        m_app.load(dir.toStdString());
+    }
 }
