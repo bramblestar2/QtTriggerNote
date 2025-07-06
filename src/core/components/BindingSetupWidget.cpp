@@ -9,6 +9,10 @@
 #include <QVBoxLayout>
 #include <QFormLayout>
 
+#include <Midi/MidiDevice.h>
+
+#include <App/MidiBindingBuilder.h>
+
 /*
 
 To create a binding, I would need to provide the following: 
@@ -108,19 +112,20 @@ BindingSetupWidget::BindingSetupWidget(QWidget *parent)
     // this->setLayout(layout);
 }
 
-void BindingSetupWidget::createBinding() {
-    emit bindingCreated(deviceList->currentText(), 
-                       eventType->text().toInt(), 
-                       key->text().toInt(), 
-                       onPage->text().toInt(), 
-                       toPage->text().toInt(), 
-                       audioId->text().toInt()
-                    );
+void BindingSetupWidget::update(std::vector<MidiDevice*> devices) {
+    deviceList->clear();
+    for (MidiDevice* device : devices) {
+        deviceList->addItem(QString::fromStdString(device->name()));
+    }
+}
 
-    qDebug() << "Creating Binding with Device: " << deviceList->currentText();
-    qDebug() << "Creating Binding with Event Type: " << eventType->text().toInt();
-    qDebug() << "Creating Binding with Key: " << key->text().toInt();
-    qDebug() << "Creating Binding with On Page: " << onPage->text().toInt();
-    qDebug() << "Creating Binding with To Page: " << toPage->text().toInt();
-    qDebug() << "Creating Binding with Audio ID: " << audioId->text().toInt();
+void BindingSetupWidget::createBinding() {
+    MidiBinding binding;
+    binding.deviceName = deviceList->currentText().toStdString();
+    binding.eventType = (libremidi::message_type)eventType->text().toInt();
+    binding.key = key->text().toInt();
+    binding.onPage = onPage->text().toInt();
+    binding.toPage = toPage->text().toInt();
+    binding.audioId = audioId->text().toInt();
+    emit bindingCreated(binding);
 }

@@ -15,7 +15,7 @@ void BindingListWidget::setBindingsList(const std::map<int, std::vector<MidiBind
     for (auto& [page, bindings] : bindings) {
         for (auto& binding : bindings) {
             auto item = new QListWidgetItem(this);
-            item->setText(QString::number(binding.id) + " " + QString::fromStdString(binding.deviceName) + " " + QString::number(binding.eventType) + " " + QString::number(binding.key));
+            item->setText(QString::number(binding.id) + " " + QString::fromStdString(binding.deviceName) + " " + QString::number((int)binding.eventType) + " " + QString::number(binding.key));
             this->addItem(item);
         }
     }

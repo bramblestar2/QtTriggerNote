@@ -42,14 +42,19 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_bindingSetupWidget = new BindingSetupWidget();
     m_bindingDockWidget->setWidget(m_bindingSetupWidget);
+    connect(&app, &QtApp::deviceRefresh, m_bindingSetupWidget, &BindingSetupWidget::update);
+    connect(m_bindingSetupWidget, &BindingSetupWidget::bindingCreated, this, &MainWindow::createBinding);
 
     m_audioSetupWidget = new AudioSetupWidget();
     m_audioDockWidget->setWidget(m_audioSetupWidget);
     connect(m_audioSetupWidget, &AudioSetupWidget::audioCreated, this, &MainWindow::createAudio);
 
-    auto bind = app.midiBind("Novation Launchpad Pro").change_page_to(1).key(0x5F).type(MidiMessage::NoteOn).on_page(0);
+    auto bind = app.midiBind("Novation Launchpad Pro").change_page_to(1).key(0x5F).type(libremidi::message_type::NOTE_ON).on_page(0).audio(1);
     app.addMidiBinding(bind.build());
-    app.midiManager().refresh();
+
+    connect(&app, &QtApp::midiMessage, this, [this](MidiDevice* device, MidiMessage msg) {
+        qDebug() << "Midi Message: " << (int)msg[1];
+    });
 }
 
 
@@ -67,4 +72,9 @@ void MainWindow::createAudio(PlayerInfo info) {
     builder.set_end(info.settings.end_time);
 
     app.createAudio(std::move(builder));
+}
+
+
+void MainWindow::createBinding(MidiBinding binding) {
+    app.addMidiBinding(binding);
 }

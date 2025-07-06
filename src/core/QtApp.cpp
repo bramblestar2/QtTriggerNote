@@ -4,8 +4,8 @@ QtApp::QtApp() {
     App::onAudioListChanged([this]() { this->on_audioListChanged(this->audioEngine().list()); });
     App::onMidiBindingsChanged([this]() { this->on_midiBindingsChanged(this->getMidiBindingPages()); });
     App::onPageChanged([this](int page) { this->on_pageChanged(page); });
-    App::setMidiCallback([this](MidiDevice* device, MidiMessage msg) { this->on_midiMessage(device, msg); });
-    App::onDeviceRefresh([this]() { this->on_deviceRefresh(this->midiManager().getAvailableDevices()); });
+    App::onMidiCallback([this](MidiDevice* device, MidiMessage msg) { this->on_midiMessage(device, msg); });
+    App::onDeviceRefresh([this](std::vector<MidiDevice*> devices) { this->on_deviceRefresh(devices); });
 }
 
 void QtApp::on_audioListChanged(std::vector<PlayerEntry> audioList) {
@@ -22,7 +22,7 @@ void QtApp::on_midiBindingsChanged(std::map<int, std::vector<MidiBinding>> bindi
     m_bindingList.clear();
     for (auto& [page, bindings] : bindings) {
         for (auto& binding : bindings) {
-            m_bindingList.append(QString::number(binding.id) + " " + QString::fromStdString(binding.deviceName) + " " + QString::number(binding.eventType) + " " + QString::number(binding.key));
+            m_bindingList.append(QString::number(binding.id) + " " + QString::fromStdString(binding.deviceName) + " " + QString::number((int)binding.eventType) + " " + QString::number(binding.key));
         }
     }
     m_bindingListModel.setStringList(m_bindingList);

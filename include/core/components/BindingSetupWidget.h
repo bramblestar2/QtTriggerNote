@@ -5,6 +5,8 @@
 #include <QLineEdit>
 #include <QComboBox>
 
+#include <App/MidiBindingBuilder.h>
+
 class BindingSetupWidget : public QWidget
 {
     Q_OBJECT
@@ -12,7 +14,10 @@ public:
     BindingSetupWidget(QWidget *parent = nullptr);
 
 signals:
-    void bindingCreated(QString filename, int eventType, int key, int onPage, int toPage, int audioId);
+    void bindingCreated(MidiBinding binding);
+
+public slots:
+    void update(std::vector<class MidiDevice*> devices);
 
 private slots:
     void createBinding();

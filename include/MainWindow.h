@@ -19,6 +19,7 @@ public:
 
 private slots:
     void createAudio(PlayerInfo info);
+    void createBinding(MidiBinding binding);
 
 private:
     QWidget *m_centralWidget;
