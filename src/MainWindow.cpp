@@ -6,6 +6,6 @@
 #include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
-    : KDDockWidgets::QtWidgets::MainWindow("MainWindow", KDDockWidgets::MainWindowOption_None, parent)
+    : QMainWindow(parent)
 {
 }

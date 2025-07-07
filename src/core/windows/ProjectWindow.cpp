@@ -1,7 +1,7 @@
 #include "core/windows/ProjectWindow.h"
 
-ProjectWindow::ProjectWindow()
-    : KDDockWidgets::QtWidgets::MainWindow("ProjectWindow", KDDockWidgets::MainWindowOption_None)
+ProjectWindow::ProjectWindow(QWidget *parent)
+    : QMainWindow(parent)
 {
 
 }
