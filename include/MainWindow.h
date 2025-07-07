@@ -14,5 +14,5 @@ public:
 
 private slots:
 private:
-
+    QtApp m_app;
 };

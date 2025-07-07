@@ -6,13 +6,13 @@ project(
     LANGUAGES CXX
 )
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
+set(LIBREMIDI_HEADER_ONLY ON CACHE BOOL "Use header‑only mode" FORCE)
+
 # find_package(KDDockWidgets-qt6 CONFIG REQUIRED)
 find_package(SndFile CONFIG REQUIRED)
 
@@ -25,6 +25,12 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(MidiApp)
+
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 qt_standard_project_setup()
 
