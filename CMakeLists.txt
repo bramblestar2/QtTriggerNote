@@ -12,11 +12,19 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(external/MidiAppBackend)
-
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
 find_package(KDDockWidgets-qt6 CONFIG REQUIRED)
 find_package(SndFile CONFIG REQUIRED)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    MidiApp
+    GIT_REPOSITORY ssh://pidevice-1@192.168.86.47:2222/jay/MidiAppTest.git
+    GIT_TAG origin/audio-revamp
+)
+
+FetchContent_MakeAvailable(MidiApp)
 
 qt_standard_project_setup()
 
