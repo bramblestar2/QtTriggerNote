@@ -2,7 +2,9 @@
 
 #include <QMainWindow>
 
-class ProjectWindow : public QMainWindow {
+#include <kddockwidgets/MainWindow.h>
+
+class ProjectWindow : public KDDockWidgets::QtWidgets::MainWindow {
 public:
     ProjectWindow(QWidget *parent = nullptr);
 private:

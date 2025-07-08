@@ -5,6 +5,7 @@
 class Application : public QObject {
     Q_OBJECT
 public:
+    Application();
 
 private:
     ProjectWindow m_projectWindow;

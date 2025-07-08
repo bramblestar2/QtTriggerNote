@@ -13,6 +13,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(LIBREMIDI_HEADER_ONLY ON CACHE BOOL "Use header‑only mode" FORCE)
 
+set(KDDockWidgets_FRONTENDS "qtwidgets" CACHE STRING "KDDockWidgets frontends" FORCE)
+set(KDDockWidgets_QT6 ON CACHE BOOL "Use Qt6" FORCE)
+
+
 # find_package(KDDockWidgets-qt6 CONFIG REQUIRED)
 find_package(SndFile CONFIG REQUIRED)
 
@@ -26,6 +30,14 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(MidiApp)
 
+FetchContent_Declare(
+    KDDockWidgets
+    GIT_REPOSITORY https://github.com/KDAB/KDDockWidgets.git
+    GIT_TAG v2.2.5
+)
+
+FetchContent_MakeAvailable(KDDockWidgets)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia)
 
 set(CMAKE_AUTOUIC ON)
@@ -36,6 +48,8 @@ qt_standard_project_setup()
 
 qt_add_executable(QtTriggerNote
     src/main.cpp
+
+    resources/resources.qrc
 
     include/MainWindow.h src/MainWindow.cpp
     include/WaveformItem.h src/WaveformItem.cpp
@@ -54,7 +68,7 @@ target_link_libraries(QtTriggerNote
         Qt6::Widgets
         Qt6::Multimedia
 
-        # KDAB::kddockwidgets
+        KDAB::kddockwidgets
         SndFile::sndfile
 
         MidiAppCore

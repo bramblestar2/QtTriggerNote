@@ -3,13 +3,15 @@
 #include <QWidget>
 
 #include "MainWindow.h"
+#include "core/Application.h"
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
-    MainWindow window;
-    window.resize(800, 600);
-    window.show();
+    app.setOrganizationName("Jay");
+    app.setApplicationName("TriggerNote");
+
+    Application appInstance;
 
     return app.exec();
 }
