@@ -5,4 +5,6 @@ AssetManagerWidget::AssetManagerWidget(QWidget *parent)
 {
     m_tabWidget = new QTabWidget(this);
     m_tabWidget->setObjectName("asset_manager_widget");
+
+    m_tabWidget->addTab(new QWidget(), "Audio");
 }

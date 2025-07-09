@@ -1,5 +1,7 @@
 #include "core/Application.h"
 
-Application::Application() {
+Application::Application()
+    : m_projectWindow(m_app)
+{
     m_projectWindow.show();
 }

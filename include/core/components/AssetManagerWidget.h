@@ -11,4 +11,5 @@ public:
 
 private:
     QTabWidget *m_tabWidget = nullptr;
+    
 };

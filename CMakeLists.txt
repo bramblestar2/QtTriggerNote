@@ -56,10 +56,13 @@ qt_add_executable(QtTriggerNote
     
     include/core/QtApp.h src/core/QtApp.cpp
     include/core/Application.h src/core/Application.cpp
+    include/core/AppState.h src/core/AppState.cpp
 
     include/core/windows/ProjectWindow.h src/core/windows/ProjectWindow.cpp
 
     include/core/components/AssetManagerWidget.h src/core/components/AssetManagerWidget.cpp
+    
+    include/core/pages/AudioEditorWidget.h src/core/pages/AudioEditorWidget.cpp
 )
 
 add_dependencies(QtTriggerNote MidiAppCore)
