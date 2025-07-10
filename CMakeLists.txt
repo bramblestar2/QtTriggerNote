@@ -61,6 +61,7 @@ qt_add_executable(QtTriggerNote
     include/core/windows/ProjectWindow.h src/core/windows/ProjectWindow.cpp
 
     include/core/components/AssetManagerWidget.h src/core/components/AssetManagerWidget.cpp
+    include/core/components/AudioLoader.h src/core/components/AudioLoader.cpp
     
     include/core/pages/AudioEditorWidget.h src/core/pages/AudioEditorWidget.cpp
 )
