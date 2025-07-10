@@ -5,6 +5,7 @@
 #include <thread>
 
 #include <vector>
+#include "core/components/AudioLoader.h"
 
 class AudioEditorWidget : public QWidget {
     Q_OBJECT
@@ -12,6 +13,9 @@ public:
     AudioEditorWidget(QWidget *parent = nullptr);
 
     void setFilePath(const QString &path);
+
+private slots:
+    void onLoaderLoaded();
 
 private:
     void paintEvent(QPaintEvent *event) override;
@@ -23,4 +27,6 @@ private:
     int m_sampleRate;
 
     QString m_filePath;
+
+    AudioLoader *m_loader = nullptr;
 };
