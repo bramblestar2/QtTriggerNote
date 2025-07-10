@@ -20,15 +20,9 @@ set(KDDockWidgets_QT6 ON CACHE BOOL "Use Qt6" FORCE)
 # find_package(KDDockWidgets-qt6 CONFIG REQUIRED)
 find_package(SndFile CONFIG REQUIRED)
 
+add_subdirectory(backend/app)
+
 include(FetchContent)
-
-FetchContent_Declare(
-    MidiApp
-    GIT_REPOSITORY https://github.com/bramblestar2/MidiAppBackend.git
-    GIT_TAG origin/audio-revamp
-)
-
-FetchContent_MakeAvailable(MidiApp)
 
 FetchContent_Declare(
     KDDockWidgets
