@@ -8,6 +8,13 @@ struct DataBlock {
     std::vector<short> samples;
     int channels;
     int sampleRate;
+
+    DataBlock() = default;
+    DataBlock(std::vector<short> samples, int channels, int sampleRate) 
+    : samples(std::move(samples))
+    , channels(channels)
+    , sampleRate(sampleRate)
+    {}
 };
 
 AudioLoader::AudioLoader(const std::vector<short>& pcm, int channels, int sampleRate, QObject *parent) 
@@ -32,9 +39,9 @@ AudioLoader::AudioLoader(QString filepath, QObject *parent)
         sf_count_t frames = file.frames();
         
         std::vector<short> pcm(frames * channels);
-        file.read(pcm.data(), frames);
+        file.readf(pcm.data(), frames);
 
-        return DataBlock(pcm, channels, sampleRate);
+        return DataBlock(std::move(pcm), channels, sampleRate);
     });
 
     QFutureWatcher<DataBlock> *watcher = new QFutureWatcher<DataBlock>(this);
