@@ -5,7 +5,9 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QPointF>
+#include <QPainter>
 #include <thread>
+#include <QPainterPath>
 
 #include <vector>
 #include "core/components/AudioLoader.h"
@@ -19,11 +21,19 @@ public:
     void setScroll(float scroll);
     void setZoom(float zoom);
 
+signals:
+    void selectionChanged(double start, double end);
+
 private slots:
     void onLoaderLoaded();
 
 private:
     void paintEvent(QPaintEvent *event) override;
+    void drawGrid(QPainter& painter, QPaintEvent *event);
+    void drawVisualizer(QPainter& painter, QPaintEvent *event);
+    void drawSelection(QPainter& painter, QPaintEvent *event);
+    void drawMouseCursor(QPainter& painter, QPaintEvent *event);
+
     void resizeEvent(QResizeEvent *event) override;
 
     void mousePressEvent(QMouseEvent *event) override;
@@ -32,16 +42,19 @@ private:
 
     void wheelEvent(QWheelEvent *event) override;
 
-    double mouseToView(int x);
+    double mouseToView(double x);
     int64_t mouseToTime(int x);
+    int64_t viewToTime(double x);
 
     void buildEnvelope();
+
+
 
     std::vector<short> m_samples;
     int m_channels;
     int m_sampleRate;
 
-    std::vector<QPointF> m_envelope;
+    QPainterPath m_cachedAudioPath;
 
     QString m_filePath;
 

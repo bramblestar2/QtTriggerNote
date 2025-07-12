@@ -4,7 +4,6 @@
 
 #include <QPen>
 #include <QPainter>
-#include <QPainterPath>
 
 AudioEditorWidget::AudioEditorWidget(QWidget *parent) 
     : QWidget(parent) 
@@ -31,29 +30,26 @@ void AudioEditorWidget::setFilePath(const QString &path) {
     }
 
     m_samples.clear();
-    m_envelope.clear();
 
     m_loader = new AudioLoader(m_filePath, this);
     connect(m_loader, &AudioLoader::loaded, this, &AudioEditorWidget::onLoaderLoaded);
 }
 
 void AudioEditorWidget::setScroll(float scroll) {
-    float prev_scroll = m_scroll;
+    scroll = qBound(0.0f, scroll, 1.0f);
 
-    m_scroll = qBound(0.0f, scroll, 1.0f);
-
-    if (!m_samples.empty() && prev_scroll != m_scroll) {
+    if (!qFuzzyCompare(scroll, m_scroll)) {
+        m_scroll = scroll;
         buildEnvelope();
         update();
     }
 }
 
 void AudioEditorWidget::setZoom(float zoom) {
-    float prev_zoom = m_zoom;
+    zoom = qMax(1.0f, zoom);
 
-    m_zoom = qMax(1.0f, zoom);
-
-    if (!m_samples.empty() && prev_zoom != m_zoom) {
+    if (!qFuzzyCompare(zoom, m_zoom)) {
+        m_zoom = zoom;
         buildEnvelope();
         update();
     }
@@ -82,15 +78,18 @@ void AudioEditorWidget::onLoaderLoaded() {
 }
 
 
-double AudioEditorWidget::mouseToView(int x) {
-    double W     = double(width());
+double AudioEditorWidget::mouseToView(double x) {
+    double W = double(width());
     if (W <= 0) return 0;
 
-    double viewW = W / m_zoom;
-    double xOff  = (W - viewW) * m_scroll;
-    double xf    = double(x) - xOff;
-    double v     = xf / viewW;
-    return qBound(0.0f, v, 1.0f);
+    double effectiveZoom = qMax(m_zoom, 1e-9);
+    double visibleWidthInView = W / effectiveZoom;
+
+    double scrollableWidth = qMax(0.0, W - visibleWidthInView);
+    
+    double viewLeft = m_scroll * scrollableWidth;
+
+    return viewLeft + (static_cast<double>(x) / effectiveZoom);
 }
 
 int64_t AudioEditorWidget::mouseToTime(int x) {
@@ -108,11 +107,41 @@ int64_t AudioEditorWidget::mouseToTime(int x) {
     return std::clamp(idx, int64_t(0), totalSamples - 1);
 }
 
+int64_t AudioEditorWidget::viewToTime(double x) {
+    if (m_samples.empty() || m_sampleRate <= 0)
+        return 0.0;
+
+    double W = double(width());
+    if (W <= 0.0)
+        return 0.0;
+
+    double effectiveZoom = std::max(1.0, double(m_zoom));
+
+    int64_t totalSamples = int64_t(m_samples.size());
+    int64_t windowSamples = int64_t(totalSamples / effectiveZoom);
+    int64_t maxOffset = std::max<int64_t>(0, totalSamples - windowSamples);
+
+    int64_t startSample = int64_t(m_scroll * double(maxOffset));
+
+    double contentWindowWidth = W / effectiveZoom;
+    double contentPos = mouseToView(x);
+
+    double fracInWindow = contentPos / contentWindowWidth;
+    fracInWindow = qBound(0.0, fracInWindow, 1.0);
+
+    int64_t sampleIndex = startSample + int64_t(fracInWindow * windowSamples);
+    sampleIndex = std::clamp(sampleIndex, int64_t(0), totalSamples - 1);
+
+    double timeSec = double(sampleIndex) / double(m_sampleRate);
+    return timeSec * 1000.0;
+}
+
 
 void AudioEditorWidget::buildEnvelope() {
     const int W = width();
-    if (W <= 0 || m_samples.empty()) {
-        m_envelope.clear();
+    const int H = height();
+    if (W <= 0 || H <= 0 || m_samples.empty()) {
+        m_cachedAudioPath = QPainterPath();
         return;
     }
 
@@ -121,17 +150,18 @@ void AudioEditorWidget::buildEnvelope() {
     const int64_t windowSamples = int64_t(totalSamples / zoom);
     const int64_t maxOffset     = std::max(int64_t(0), totalSamples - windowSamples);
     const int64_t startSample   = int64_t(m_scroll * maxOffset);
+    const double spp            = double(windowSamples) / double(W);
+    const double midY           = H * 0.5;
 
-    const double spp = double(windowSamples) / double(W);
+    QPainterPath path;
+    std::vector<float> amplitudes(W);
 
-    m_envelope.resize(W * 2);
-    const double midY = height() * 0.5;
-
+    // Compute RMS amplitudes for each column
     for (int x = 0; x < W; ++x) {
         int64_t s = startSample + int64_t(std::floor(x * spp));
         int64_t e = startSample + int64_t(std::floor((x + 1) * spp));
         if (e <= s) e = s + 1;
-        e = std::min<int64_t>(e, startSample + windowSamples);
+        e = std::min(e, startSample + windowSamples);
 
         double sumSq = 0;
         for (int64_t i = s; i < e; ++i) {
@@ -139,19 +169,30 @@ void AudioEditorWidget::buildEnvelope() {
             sumSq += v * v;
         }
         double rms = std::sqrt(sumSq / double(e - s));
-        double A   = rms * midY;
-
-        m_envelope[2*x    ] = QPointF(x,        midY - A);
-        m_envelope[2*x + 1] = QPointF(x,        midY + A);
+        amplitudes[x] = rms * midY;
     }
+
+    // Build path (top + bottom in reverse)
+    path.moveTo(0, midY - amplitudes[0]);
+    for (int x = 1; x < W; ++x) {
+        path.lineTo(x, midY - amplitudes[x]);
+    }
+    for (int x = W-1; x >= 0; --x) {
+        path.lineTo(x, midY + amplitudes[x]);
+    }
+    path.closeSubpath();
+
+    m_cachedAudioPath = path;
 }
 
 
 void AudioEditorWidget::mousePressEvent(QMouseEvent *event) {
-    m_startSelection =
-    m_endSelection   = mouseToView(int(event->position().x())) * width();
-    m_mouseDown = true;
-    
+    if (event->button() == Qt::LeftButton) {
+        m_startSelection =
+        m_endSelection   = mouseToView(event->position().x());
+        m_mouseDown = true;
+    }
+
     QWidget::mousePressEvent(event);
 }
 
@@ -161,8 +202,7 @@ void AudioEditorWidget::mouseMoveEvent(QMouseEvent *event) {
     m_mouseX = event->position().x();
 
     if (m_mouseDown) {
-        // SELECTION WHEN SCROLLED/VIEWED IS BROKEN
-        m_endSelection = mouseToView(int(event->position().x())) * width();
+        m_endSelection = mouseToView(event->position().x());
     }
     
     update();
@@ -171,8 +211,19 @@ void AudioEditorWidget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void AudioEditorWidget::mouseReleaseEvent(QMouseEvent *event) {
-    m_endSelection = mouseToView(int(event->position().x())) * width();
-    m_mouseDown = false;
+    if (event->button() == Qt::LeftButton) {
+        m_endSelection = mouseToView(event->position().x());
+        m_mouseDown = false;
+
+        int64_t start = viewToTime(m_startSelection);
+        int64_t end   = viewToTime(m_endSelection);
+
+        if (start > end) {
+            std::swap(start, end);
+        }
+
+        emit selectionChanged(start, end);
+    }
     
     QWidget::mouseReleaseEvent(event);
 }
@@ -180,47 +231,76 @@ void AudioEditorWidget::mouseReleaseEvent(QMouseEvent *event) {
 void AudioEditorWidget::wheelEvent(QWheelEvent *event) {
     QWidget::wheelEvent(event);
 
-    if (event->angleDelta().y() == 0) {
-        return;
-    }
+    int delta = event->angleDelta().y();
+    if (delta == 0) return;
 
     bool ctrl = event->modifiers() & Qt::ControlModifier;
-    float steps = event->angleDelta().y() / 120.0f;
+    float steps = delta / 120.0f;
     float factor = std::pow(1.2f, steps);
-    
+
     if (ctrl) {
-        float x = event->position().x();
-        float viewFrac = x / float(width());
+        float mouseX = event->position().x();
 
-        float absFrac = m_scroll + viewFrac * (1.0f / m_zoom);
+        float oldContentW = width() * m_zoom;
+        float oldScrollable = qMax(0.0f, oldContentW - width());
+        float oldScrollOffset = m_scroll * oldScrollable;
 
-        float newZoom = m_zoom * factor;
-        newZoom = qMax(1.0f, newZoom);
+        float contentMouseX = oldScrollOffset + mouseX;
 
-        float newWindowFrac = 1.f / newZoom;
-        float newScroll = absFrac - viewFrac * newWindowFrac;
+        float newZoom = qMax(1.0f, m_zoom * factor);
+        float newContentW = width() * newZoom;
+        float newScrollable = qMax(0.0f, newContentW - width());
 
-        newScroll = qBound(0.0f, newScroll, 1.0f - newWindowFrac);
-        
-        m_zoom = newZoom;
-        m_scroll = newScroll;
+        float newScrollOffset = contentMouseX * (newZoom / m_zoom) - mouseX;
+        newScrollOffset = qBound(0.0f, newScrollOffset, newScrollable);
+
+        m_zoom   = newZoom;
+        m_scroll = (newScrollable > 0 ? newScrollOffset / newScrollable : 0.0f);
 
         buildEnvelope();
         update();
-    } else {
+    }
+    else {
         float scrollStep = 0.1f * (1.0f / m_zoom);
         setScroll(m_scroll - steps * scrollStep);
     }
 }
 
 
+
 void AudioEditorWidget::paintEvent(QPaintEvent *event) {
     QWidget::paintEvent(event);
-    if (m_envelope.empty()) return;
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
+    drawGrid(painter, event);
+    drawVisualizer(painter, event);
+    drawSelection(painter, event);
+    drawMouseCursor(painter, event);
+}
+
+
+void AudioEditorWidget::drawGrid(QPainter& painter, QPaintEvent *event) {
+    return;
+
+    painter.save();
+
+    QPen gridPen(Qt::gray);
+    gridPen.setWidth(1);
+    gridPen.setCapStyle(Qt::RoundCap);
+    painter.setPen(gridPen);
+
+    QColor gridColor = QColor(255,255,255, 20);
+    QBrush gridBrush(gridColor);
+    painter.setBrush(gridBrush);
+
+    int H = height();
+
+    painter.restore();
+}
+
+void AudioEditorWidget::drawVisualizer(QPainter& painter, QPaintEvent *event) {
     QPen pen(Qt::white);
     pen.setWidth(1);
     pen.setCapStyle(Qt::RoundCap);
@@ -229,51 +309,36 @@ void AudioEditorWidget::paintEvent(QPaintEvent *event) {
     QColor fillColor = QColor(255,255,255, 60);
     QBrush brush(fillColor);
     painter.setBrush(brush);
+    
+    painter.drawPath(m_cachedAudioPath);
+}
 
-    // — apply zoom & scroll —
-    int W     = width();
-    int viewW = qMax(1, int(W));
-    int xOff   = int(W - viewW);
+void AudioEditorWidget::drawSelection(QPainter& painter, QPaintEvent *event) {
+    float contentWidth = width() * m_zoom;
+    float maxScrollOffset = qMax(0.0f, contentWidth - width());
+    float scrollOffset = m_scroll * maxScrollOffset;
 
-    std::vector<QPointF> top, bottom;
-    top.reserve(viewW);
-    bottom.reserve(viewW);
-    for (int i = 0; i < viewW*2; i += 2) {
-        top   .push_back(m_envelope[i]);
-        bottom.push_back(m_envelope[i+1]);
+    if (m_mouseDown || m_startSelection != m_endSelection) {
+        float v0 = m_startSelection  * m_zoom - scrollOffset;
+        float v1 = m_endSelection * m_zoom - scrollOffset;
+
+        float x0 = qBound(0.0f, qMin(v0, v1), float(width()));
+        float x1 = qBound(0.0f, qMax(v0, v1), float(width()));
+
+        QColor selCol(255, 255, 255, 50);
+        painter.save();
+        painter.setCompositionMode(QPainter::CompositionMode_Difference);
+        painter.fillRect(x0, 0, x1-x0, height(), selCol);
+        painter.restore();
     }
+}
 
-    QPainterPath fillPath;
-    if (!top.empty()) {
-        fillPath.moveTo(top[0]);
-
-        for (size_t i = 1; i < top.size(); ++i)
-            fillPath.lineTo(top[i]);
-
-        for (int i = bottom.size()-1; i >= 0; --i)
-            fillPath.lineTo(bottom[i]);
-
-        fillPath.closeSubpath();
-    }
-
-    painter.drawPath(fillPath);
-
+void AudioEditorWidget::drawMouseCursor(QPainter& painter, QPaintEvent *event) {
     painter.setPen(QPen(Qt::white, 1, Qt::DashLine));
     float mouseX = mouseToView(m_mouseX);
     painter.drawLine(m_mouseX, 0, m_mouseX, height());
-
-    if (m_mouseDown || m_startSelection != m_endSelection) {
-        float v0 = mouseToView(int(m_startSelection));
-        float v1 = mouseToView(int(m_endSelection));
-        float x0 = qBound(0.0f, qMin(v0, v1) * width(), float(width()));
-        float x1 = qBound(0.0f, qMax(v0, v1) * width(), float(width()));
-
-        QColor selCol(255, 255, 255, 60);
-        painter.fillRect(x0, 0, x1-x0, height(), selCol);
-
-
-    }
 }
+
 
 
 
@@ -283,11 +348,10 @@ void AudioEditorWidget::resizeEvent(QResizeEvent *event) {
     if (!m_samples.empty()) {
 
         // - recompute start/end selections -
-        float v0 = mouseToView(int(m_startSelection));
-        float v1 = mouseToView(int(m_endSelection));
-        m_startSelection = qBound(0.0f, v0, 1.0f);
-        m_endSelection   = qBound(0.0f, v1, 1.0f);
-
+        // float v0 = m_startSelection;
+        // float v1 = m_endSelection;
+        // m_startSelection = qBound(0.0f, v0, 1.0f);
+        // m_endSelection   = qBound(0.0f, v1, 1.0f);
 
         buildEnvelope();
     }
