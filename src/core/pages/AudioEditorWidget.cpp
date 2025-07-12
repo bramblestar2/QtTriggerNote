@@ -16,7 +16,7 @@ AudioEditorWidget::AudioEditorWidget(QWidget *parent)
     , m_endSelection(0)
     , m_mouseDown(false)
 {
-    setFilePath("/home/jay/Music/C418 - The Fighter.mp3");
+    setFilePath("C:\\Users\\thega\\Downloads\\brackeys_platformer_assets\\brackeys_platformer_assets\\music\\time_for_adventure.mp3");
 
     setMouseTracking(true);
 }
@@ -141,7 +141,7 @@ void AudioEditorWidget::buildEnvelope() {
     const int W = width();
     const int H = height();
     if (W <= 0 || H <= 0 || m_samples.empty()) {
-        m_cachedAudioPath = QPainterPath();
+        m_cachedAudioImage = QPixmap();
         return;
     }
 
@@ -182,7 +182,23 @@ void AudioEditorWidget::buildEnvelope() {
     }
     path.closeSubpath();
 
-    m_cachedAudioPath = path;
+    // m_cachedAudioPath = path;
+
+    
+    m_cachedAudioImage = QPixmap(size());
+    m_cachedAudioImage.fill(Qt::transparent);
+
+    QPainter painter(&m_cachedAudioImage);
+    QPen pen(Qt::white);
+    pen.setWidth(1);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+
+    QColor fillColor = QColor(255,255,255, 60);
+    QBrush brush(fillColor);
+    painter.setBrush(brush);
+
+    painter.drawPath(path);
 }
 
 
@@ -301,16 +317,18 @@ void AudioEditorWidget::drawGrid(QPainter& painter, QPaintEvent *event) {
 }
 
 void AudioEditorWidget::drawVisualizer(QPainter& painter, QPaintEvent *event) {
-    QPen pen(Qt::white);
-    pen.setWidth(1);
-    pen.setCapStyle(Qt::RoundCap);
-    painter.setPen(pen);
+    // QPen pen(Qt::white);
+    // pen.setWidth(1);
+    // pen.setCapStyle(Qt::RoundCap);
+    // painter.setPen(pen);
 
-    QColor fillColor = QColor(255,255,255, 60);
-    QBrush brush(fillColor);
-    painter.setBrush(brush);
+    // QColor fillColor = QColor(255,255,255, 60);
+    // QBrush brush(fillColor);
+    // painter.setBrush(brush);
     
-    painter.drawPath(m_cachedAudioPath);
+    // painter.drawPath(m_cachedAudioPath);
+
+    painter.drawPixmap(0, 0, m_cachedAudioImage);
 }
 
 void AudioEditorWidget::drawSelection(QPainter& painter, QPaintEvent *event) {

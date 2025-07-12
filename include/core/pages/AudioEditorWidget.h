@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <thread>
 #include <QPainterPath>
+#include <QPixmap>
 
 #include <vector>
 #include "core/components/AudioLoader.h"
@@ -54,7 +55,8 @@ private:
     int m_channels;
     int m_sampleRate;
 
-    QPainterPath m_cachedAudioPath;
+    QPixmap m_cachedAudioImage;
+    // QPainterPath m_cachedAudioPath;
 
     QString m_filePath;
 
