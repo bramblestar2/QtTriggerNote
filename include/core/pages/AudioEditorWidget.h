@@ -4,6 +4,10 @@
 #include <QPaintEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
+
 #include <QPointF>
 #include <QPainter>
 #include <thread>
@@ -24,6 +28,7 @@ public:
 
 signals:
     void selectionChanged(double start, double end);
+    void fileDropped(QString filepath);
 
 private slots:
     void onLoaderLoaded();
@@ -43,9 +48,13 @@ private:
 
     void wheelEvent(QWheelEvent *event) override;
 
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+
     double mouseToView(double x);
     int64_t mouseToTime(int x);
     int64_t viewToTime(double x);
+    int64_t mouseToSample(double x);
 
     void buildEnvelope();
 

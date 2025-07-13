@@ -1,6 +1,8 @@
 #include "core/pages/AudioEditorWidget.h"
 #include <sndfile.hh>
 #include <QUrl>
+#include <QMimeType>
+#include <QMimeDatabase>
 
 #include <QPen>
 #include <QPainter>
@@ -16,8 +18,9 @@ AudioEditorWidget::AudioEditorWidget(QWidget *parent)
     , m_endSelection(0)
     , m_mouseDown(false)
 {
-    setFilePath("C:\\Users\\thega\\Downloads\\brackeys_platformer_assets\\brackeys_platformer_assets\\music\\time_for_adventure.mp3");
+    setFilePath("/home/jay/Music/C418 - The Fighter.mp3");
 
+    setAcceptDrops(true);
     setMouseTracking(true);
 }
 
@@ -136,6 +139,23 @@ int64_t AudioEditorWidget::viewToTime(double x) {
     return timeSec * 1000.0;
 }
 
+int64_t AudioEditorWidget::mouseToSample(double x) {
+    double W = double(width());
+    if (m_samples.empty()) return 0;
+
+    int64_t totalSamples = int64_t(m_samples.size());
+    int64_t windowSamples = int64_t(totalSamples / m_zoom);
+    int64_t maxOffset     = totalSamples - windowSamples;
+    int64_t startSample   = int64_t(m_scroll * float(maxOffset));
+
+    float viewFrac = mouseToView(x);
+    int64_t inWin  = int64_t(viewFrac * windowSamples);
+    
+    int64_t idx = startSample + inWin;
+    // qDebug() << "idx" << idx << "viewFrac" << viewFrac << "inWin" << inWin << "startSample" << startSample << "maxOffset" << maxOffset << "totalSamples" << totalSamples;
+    return std::clamp(idx, int64_t(0), totalSamples - 1);
+}
+
 
 void AudioEditorWidget::buildEnvelope() {
     const int W = width();
@@ -182,13 +202,11 @@ void AudioEditorWidget::buildEnvelope() {
     }
     path.closeSubpath();
 
-    // m_cachedAudioPath = path;
-
-    
     m_cachedAudioImage = QPixmap(size());
     m_cachedAudioImage.fill(Qt::transparent);
 
     QPainter painter(&m_cachedAudioImage);
+    painter.setRenderHint(QPainter::Antialiasing);
     QPen pen(Qt::white);
     pen.setWidth(1);
     pen.setCapStyle(Qt::RoundCap);
@@ -230,6 +248,8 @@ void AudioEditorWidget::mouseReleaseEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         m_endSelection = mouseToView(event->position().x());
         m_mouseDown = false;
+
+        // qDebug() << mouseToSample(event->position().x());
 
         int64_t start = viewToTime(m_startSelection);
         int64_t end   = viewToTime(m_endSelection);
@@ -280,6 +300,44 @@ void AudioEditorWidget::wheelEvent(QWheelEvent *event) {
         float scrollStep = 0.1f * (1.0f / m_zoom);
         setScroll(m_scroll - steps * scrollStep);
     }
+}
+
+
+void AudioEditorWidget::dragEnterEvent(QDragEnterEvent *event) {
+    if (event->mimeData()->hasUrls()) {
+        const auto urls = event->mimeData()->urls();
+
+        if (!urls.isEmpty()) {
+            const auto url = urls.first();
+            if (url.isLocalFile()) {
+                const QMimeType mime = QMimeDatabase().mimeTypeForFile(url.toLocalFile());
+
+                if (mime.name().startsWith("audio/")) {
+                    event->acceptProposedAction();
+                    return;
+                }
+            }
+        }
+    }
+    event->ignore();
+}
+
+void AudioEditorWidget::dropEvent(QDropEvent *event) {
+    const auto urls = event->mimeData()->urls();
+
+    if (!urls.isEmpty()) {
+        const auto url = urls.first();
+        if (url.isLocalFile()) {
+            const QMimeType mime = QMimeDatabase().mimeTypeForFile(url.toLocalFile());
+
+            if (mime.name().startsWith("audio/")) {
+                setFilePath(url.toLocalFile());
+                emit fileDropped(url.toLocalFile());
+            }
+        }
+    }
+    
+    event->acceptProposedAction();
 }
 
 
@@ -364,12 +422,12 @@ void AudioEditorWidget::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
 
     if (!m_samples.empty()) {
+        // float contentWidth = width() * m_zoom;
+        // float maxScrollOffset = qMax(0.0f, contentWidth - width());
+        // float scrollOffset = m_scroll * maxScrollOffset;
 
-        // - recompute start/end selections -
-        // float v0 = m_startSelection;
-        // float v1 = m_endSelection;
-        // m_startSelection = qBound(0.0f, v0, 1.0f);
-        // m_endSelection   = qBound(0.0f, v1, 1.0f);
+        // m_startSelection = qBound(0.0f, m_startSelection * m_zoom - scrollOffset, contentWidth);
+        // m_endSelection   = qBound(0.0f, m_endSelection   * m_zoom - scrollOffset, contentWidth);
 
         buildEnvelope();
     }
